@@ -1,0 +1,64 @@
+version: '2.0'
+
+name: modifydb
+
+workflows:
+  scale_compute:
+    type: direct
+    input:
+      - database_engine
+      - owner_id
+      - size
+      - instance_id
+      - workflowapi_url
+      - nova_flavor_id
+    tasks:
+      host_get_from_db:
+        action: std.http
+        # This choices for type are call and notify. In notify the external system will call a webhook and we move forward
+        type: call
+        input:
+          url: 'http://localhost:8888/externalservice_get/200/'
+          method: GET
+        retry:
+          count: 100
+          delay: 5
+        publish:
+          nova_vm_id: host_get_from_db.content.nova_vm_id
+          local_host_id: host_get_from_db.content.local_host_id
+          target_nova_flavor_id: volume_get_from_db.content.target_nova_flavor_id
+        on-success:
+          - volume_get_from_db
+      volume_get_from_db:
+        action: std.http
+        type: call
+        input:
+          url: 'http://localhost:8888/externalservice_get/400/'
+          method: GET
+        retry:
+          count: 2
+          delay: 5
+        publish:
+          nova_volume_id: volume_get_from_db.content.nova_volume_id
+          local_volume_id: volume_get_from_db.content.local_volume_id
+          target_nova_flavor_id: volume_get_from_db.content.target_nova_flavor_id
+        on-success:
+          - create_vm_in_nova
+      create_vm_in_nova:
+        action: std.http
+        type: call
+        input:
+          url: 'http://localhost:8888/externalservice_post/200/'
+          method: POST
+          body:
+            database_engine: <database_engine>
+            owner_id: <owner_id>
+            nova_flavor_id: <target_nova_flavor_id>
+        wait-after: 15
+        retry:
+          count: 100
+          delay: 5
+        publish:
+          target_nova_vm_id: create_vm_in_nova.content.nova_vm_id
+        on-success:
+          - wait_for_vm_status_active
