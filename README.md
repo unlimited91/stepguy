@@ -23,9 +23,25 @@
 
 # Run
 
+*  Please install python3.7 and virtualenv for separation of python site packages.
 *  You should be in the stepguy folder. Now fire up a terminal
+*  Now create a virtual env in the folder. Don't worry it has been gitignored :) 
+*  `virtualenv -p python3 venv` If you have only python3 and a symlink called python you can choose not to write `python3`
+*  Now install packages `pip install -r requirements.txt`
 *  In one tab run the API server `python manage.py runserver 8888`
 *  In another tab run the Execution Engine `sh bin/start-execution-engine`
+*  Now you should be able to see the homepage of Django admin at `localhost:8888/admin/`
+*  Voila! Now you should be able upload workflows and initiate. But first you need a user
+*  Fire up another terminal tab and run `python manage.py shell`
+*  Do the following
+*  `from django.contrib.auth.models import User`
+*  `User.objects.create_superuser(username='admin', password='elon3.14', email='tesla@elongate.com')`
+*  Now you should be able to log into `localhost:8888/admin/` with the following credentials.
+*  Now upload a Workflow DSL file here `http://localhost:8888/admin/workflowops/workflowdsl/`
+*  Today we only support YAML based configuration. You can take a look at an example (https://github.com/unlimited91/stepguy/tree/main/workflows/yaml/admin)
+*  You should see an Action select box just above the Workflow DSL listing. Select the Action `Parse DSL file` from the select box and the system will start processing your YAML file.
+*  Now you can start calling the below mentioned APIs
+*  I have built the support for External Service Notifications moving a steo forward but haven't built it as an example. No time!! :) Will do it soonish
  
 
 ## API Quick look
